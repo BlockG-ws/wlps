@@ -243,9 +243,20 @@ func (sm *SessionManager) connectIMAP(username, password string) (*imapclient.Cl
 		return nil, err
 	}
 
-	if err := c.Login(username, password).Wait(); err != nil {
-		c.Logout()
-		return nil, AuthError{err}
+	// Check if LOGIN command is disabled (e.g., Stalwart mail server)
+	// If LOGINDISABLED capability is present, use SASL PLAIN authentication instead
+	caps := c.Caps()
+	if caps != nil && caps.Has(imap.CapLoginDisabled) {
+		auth := sasl.NewPlainClient("", username, password)
+		if err := c.Authenticate(auth); err != nil {
+			c.Logout()
+			return nil, AuthError{err}
+		}
+	} else {
+		if err := c.Login(username, password).Wait(); err != nil {
+			c.Logout()
+			return nil, AuthError{err}
+		}
 	}
 
 	return c, nil
