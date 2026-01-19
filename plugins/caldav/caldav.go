@@ -54,7 +54,7 @@ func getCalendar(ctx context.Context, u *url.URL, session *alps.Session) (*calda
 	calendars, err := c.FindCalendars(ctx, calendarHomeSet)
 	if err != nil {
 		// Fallback for Stalwart and other servers that may not properly support discovery
-		// Try using the calendar home set path directly as a calendar
+		// Try using the base URL path directly
 		calendars, err = c.FindCalendars(ctx, u.Path)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to find calendars: %v", err)
