@@ -65,7 +65,12 @@ func (p *plugin) clientWithAddressBook(ctx context.Context, session *alps.Sessio
 
 	addressBooks, err := c.FindAddressBooks(ctx, homeSet)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to query CardDAV address books: %v", err)
+		// Fallback for Stalwart and other servers that may not properly support discovery
+		// Try using the base URL path directly
+		addressBooks, err = c.FindAddressBooks(ctx, p.url.Path)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to query CardDAV address books: %v", err)
+		}
 	}
 	if len(addressBooks) == 0 {
 		return nil, nil, errNoAddressBook
